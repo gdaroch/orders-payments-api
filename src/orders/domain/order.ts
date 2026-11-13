@@ -4,7 +4,7 @@ export enum OrderStatus {
   PAID = 'PAID',
 }
 
-export class OrderDto {
+export class Order {
   id: string;
   userId: string;
   amount: number;
