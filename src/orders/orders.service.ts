@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto.js';
-import { OrderDto, STATUS } from './dto/order.dto.js';
+import { OrderDto, OrderStatus } from './domain/order.js';
 import { randomUUID } from 'crypto';
 import type { UUID } from 'crypto';
 
@@ -13,7 +13,7 @@ export class OrdersService {
       id: 'bbb89a35-d03b-44b1-a418-139d40c328c1',
       userId: 'f950b873-be82-4a4d-a55d-ac4ff3d16ab1',
       amount: 10,
-      status: STATUS.PAID,
+      status: OrderStatus.PAID,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -21,12 +21,15 @@ export class OrdersService {
 
   /** Creates a new order for the user with `PENDING` status. */
   create(userId: UUID, createOrderDto: CreateOrderDto): OrderDto {
+    const currentDate = new Date();
+
     const newOrder: OrderDto = {
       ...createOrderDto,
       id: randomUUID(),
       userId,
-      createdAt: new Date(),
-      status: STATUS.PENDING,
+      createdAt: currentDate,
+      updatedAt: currentDate,
+      status: OrderStatus.PENDING,
     };
 
     this.orders.push(newOrder);

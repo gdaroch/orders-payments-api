@@ -1,7 +1,7 @@
-import { IsNumber, Min } from 'class-validator';
+import { Min, IsInt } from 'class-validator';
 
 export class CreateOrderDto {
-  @IsNumber()
+  @IsInt()
   @Min(1)
   amount: number;
 }

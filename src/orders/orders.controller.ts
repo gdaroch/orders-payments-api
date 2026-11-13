@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { OrdersService } from './orders.service.js';
 import type { UUID } from 'crypto';
@@ -10,7 +17,7 @@ export class OrdersController {
 
   /** GET /orders/:id - returns an order of the current user. */
   @Get(':id')
-  getById(@Param('id') orderId: UUID) {
+  getById(@Param('id', ParseUUIDPipe) orderId: UUID) {
     // TODO: placeholder, this will be obtained from JWT
     const userId = 'f950b873-be82-4a4d-a55d-ac4ff3d16ab1';
     return this.ordersService.findOne(userId, orderId);
