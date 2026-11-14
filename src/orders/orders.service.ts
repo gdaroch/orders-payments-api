@@ -1,7 +1,7 @@
 import {
   Injectable,
   NotFoundException,
-  UnprocessableEntityException,
+  ConflictException,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { Order, OrderStatus } from './domain/order.js';
@@ -61,13 +61,13 @@ export class OrdersService {
    * Cancels a pending order belonging to the given user.
    * Cancelling an order that is already cancelled is a no-op.
    * @throws NotFoundException if the order doesn't exist or belongs to another user.
-   * @throws UnprocessableEntityException if the order was already paid.
+   * @throws ConflictException if the order was already paid.
    */
   cancel(userId: UUID, orderId: UUID): Order {
     const orderToBeCancelled = this.findOne(userId, orderId);
 
     if (orderToBeCancelled.status === OrderStatus.PAID) {
-      throw new UnprocessableEntityException(
+      throw new ConflictException(
         "The order was already paid, can't be cancelled",
       );
     }
