@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { Order, OrderStatus } from './domain/order.js';
 import { randomUUID } from 'crypto';
@@ -41,9 +45,9 @@ export class OrdersService {
    * Finds an order by id, scoped to the given user.
    * @throws NotFoundException if the order doesn't exist or belongs to another user.
    */
-  findOne(userId: UUID, id: UUID): Order {
+  findOne(userId: UUID, orderId: UUID): Order {
     const order = this.orders.find(
-      (order) => order.id === id && order.userId === userId,
+      (order) => order.id === orderId && order.userId === userId,
     );
 
     if (!order) {
@@ -51,5 +55,28 @@ export class OrdersService {
     }
 
     return order;
+  }
+
+  /**
+   * Cancels a pending order belonging to the given user.
+   * Cancelling an order that is already cancelled is a no-op.
+   * @throws NotFoundException if the order doesn't exist or belongs to another user.
+   * @throws ConflictException if the order was already paid.
+   */
+  cancel(userId: UUID, orderId: UUID): Order {
+    const orderToBeCancelled = this.findOne(userId, orderId);
+
+    if (orderToBeCancelled.status === OrderStatus.PAID) {
+      throw new ConflictException(
+        "The order was already paid, can't be cancelled",
+      );
+    }
+
+    if (orderToBeCancelled.status === OrderStatus.PENDING) {
+      orderToBeCancelled.status = OrderStatus.CANCELLED;
+      orderToBeCancelled.updatedAt = new Date();
+    }
+
+    return orderToBeCancelled;
   }
 }
