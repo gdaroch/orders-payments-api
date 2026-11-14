@@ -5,6 +5,8 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { OrdersService } from './orders.service.js';
@@ -29,5 +31,14 @@ export class OrdersController {
     // TODO: placeholder, this will be obtained from JWT
     const userId = 'f950b873-be82-4a4d-a55d-ac4ff3d16ab1';
     return this.ordersService.create(userId, createOrderDto);
+  }
+
+  /** POST /orders/:id/cancel - cancels a pending order of the current user. */
+  @Post(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  cancel(@Param('id', ParseUUIDPipe) orderId: UUID) {
+    // TODO: placeholder, this will be obtained from JWT
+    const userId = 'f950b873-be82-4a4d-a55d-ac4ff3d16ab1';
+    return this.ordersService.cancel(userId, orderId);
   }
 }
