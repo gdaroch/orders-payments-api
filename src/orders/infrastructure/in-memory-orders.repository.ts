@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { OrderRepository } from '../domain/order.repository.js';
+import type { UUID } from 'crypto';
 import { Order, OrderStatus } from '../domain/order.js';
-import { UUID } from 'crypto';
+import { OrderRepository } from '../domain/order.repository.js';
 
 const exampleOrder = {
   id: 'bbb89a35-d03b-44b1-a418-139d40c328c1' as UUID,
@@ -22,12 +22,13 @@ export class InMemoryOrdersRepository implements OrderRepository {
   }
 
   /** Returns the order with the given id, or `undefined` if not found. */
-  async get(orderId: UUID): Promise<Order | undefined> {
+  async findById(orderId: UUID): Promise<Order | undefined> {
     return this.orders.get(orderId);
   }
 
   /** Saves the order, replacing any existing order with the same id. */
-  async set(orderId: UUID, order: Order): Promise<void> {
+  async save(order: Order): Promise<void> {
+    const orderId = order.id as UUID;
     this.orders.set(orderId, order);
   }
 }

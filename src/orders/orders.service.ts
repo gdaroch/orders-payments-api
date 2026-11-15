@@ -32,7 +32,7 @@ export class OrdersService {
       status: OrderStatus.PENDING,
     };
 
-    await this.orders.set(orderId, newOrder);
+    await this.orders.save(newOrder);
 
     return newOrder;
   }
@@ -42,7 +42,7 @@ export class OrdersService {
    * @throws NotFoundException if the order doesn't exist or belongs to another user.
    */
   async findOne(userId: UUID, orderId: UUID): Promise<Order> {
-    const order = await this.orders.get(orderId);
+    const order = await this.orders.findById(orderId);
 
     if (!order || order.userId !== userId) {
       throw new NotFoundException('Order not found');
@@ -69,9 +69,8 @@ export class OrdersService {
     if (orderToBeCancelled.status === OrderStatus.PENDING) {
       orderToBeCancelled.status = OrderStatus.CANCELLED;
       orderToBeCancelled.updatedAt = new Date();
+      await this.orders.save(orderToBeCancelled);
     }
-
-    await this.orders.set(orderId, orderToBeCancelled);
 
     return orderToBeCancelled;
   }

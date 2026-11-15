@@ -1,10 +1,10 @@
-import { UUID } from 'crypto';
+import type { UUID } from 'crypto';
 import { Order } from './order.js';
 
 /** Contract for saving and loading orders. */
 export interface OrderRepository {
-  get(orderId: UUID): Promise<Order | undefined>;
-  set(orderId: UUID, order: Order): Promise<void>;
+  findById(orderId: UUID): Promise<Order | undefined>;
+  save(order: Order): Promise<void>;
 }
 
 /** Injection token for {@link OrderRepository}. */
