@@ -1,3 +1,5 @@
+import { UUID } from 'crypto';
+
 export enum OrderStatus {
   PENDING = 'PENDING',
   CANCELLED = 'CANCELLED',
@@ -5,8 +7,8 @@ export enum OrderStatus {
 }
 
 export class Order {
-  id: string;
-  userId: string;
+  id: UUID;
+  userId: UUID;
   amount: number;
   status: OrderStatus;
   createdAt: Date;

@@ -1,34 +1,30 @@
 import {
+  ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto.js';
-import { Order, OrderStatus } from './domain/order.js';
-import { randomUUID } from 'crypto';
 import type { UUID } from 'crypto';
+import { randomUUID } from 'crypto';
+import { Order, OrderStatus } from './domain/order.js';
+import type { OrderRepository } from './domain/order.repository.js';
+import { ORDER_REPOSITORY } from './domain/order.repository.js';
+import { CreateOrderDto } from './dto/create-order.dto.js';
 
 /** Business logic for creating and retrieving orders. */
 @Injectable()
 export class OrdersService {
-  // TODO: placeholder, this will be stored in SQL
-  private orders: Order[] = [
-    {
-      id: 'bbb89a35-d03b-44b1-a418-139d40c328c1',
-      userId: 'f950b873-be82-4a4d-a55d-ac4ff3d16ab1',
-      amount: 10,
-      status: OrderStatus.PAID,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+  constructor(
+    @Inject(ORDER_REPOSITORY) private readonly orders: OrderRepository,
+  ) {}
 
   /** Creates a new order for the user with `PENDING` status. */
-  create(userId: UUID, createOrderDto: CreateOrderDto): Order {
+  async create(userId: UUID, createOrderDto: CreateOrderDto): Promise<Order> {
     const currentDate = new Date();
+    const orderId = randomUUID();
 
     const newOrder: Order = {
-      id: randomUUID(),
+      id: orderId,
       userId,
       createdAt: currentDate,
       updatedAt: currentDate,
@@ -36,7 +32,7 @@ export class OrdersService {
       status: OrderStatus.PENDING,
     };
 
-    this.orders.push(newOrder);
+    await this.orders.save(newOrder);
 
     return newOrder;
   }
@@ -45,12 +41,10 @@ export class OrdersService {
    * Finds an order by id, scoped to the given user.
    * @throws NotFoundException if the order doesn't exist or belongs to another user.
    */
-  findOne(userId: UUID, orderId: UUID): Order {
-    const order = this.orders.find(
-      (order) => order.id === orderId && order.userId === userId,
-    );
+  async findOne(userId: UUID, orderId: UUID): Promise<Order> {
+    const order = await this.orders.findById(orderId);
 
-    if (!order) {
+    if (!order || order.userId !== userId) {
       throw new NotFoundException('Order not found');
     }
 
@@ -63,8 +57,8 @@ export class OrdersService {
    * @throws NotFoundException if the order doesn't exist or belongs to another user.
    * @throws ConflictException if the order was already paid.
    */
-  cancel(userId: UUID, orderId: UUID): Order {
-    const orderToBeCancelled = this.findOne(userId, orderId);
+  async cancel(userId: UUID, orderId: UUID): Promise<Order> {
+    const orderToBeCancelled = await this.findOne(userId, orderId);
 
     if (orderToBeCancelled.status === OrderStatus.PAID) {
       throw new ConflictException(
@@ -75,6 +69,7 @@ export class OrdersService {
     if (orderToBeCancelled.status === OrderStatus.PENDING) {
       orderToBeCancelled.status = OrderStatus.CANCELLED;
       orderToBeCancelled.updatedAt = new Date();
+      await this.orders.save(orderToBeCancelled);
     }
 
     return orderToBeCancelled;
