@@ -28,7 +28,6 @@ export class InMemoryOrdersRepository implements OrderRepository {
 
   /** Saves the order, replacing any existing order with the same id. */
   async save(order: Order): Promise<void> {
-    const orderId = order.id as UUID;
-    this.orders.set(orderId, order);
+    this.orders.set(order.id, order);
   }
 }
