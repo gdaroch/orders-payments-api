@@ -5,7 +5,6 @@ import type { Mock } from 'vitest';
 import { Order, OrderStatus } from './domain/order.js';
 import { ORDER_REPOSITORY } from './domain/order.repository.js';
 import { OrdersService } from './orders.service.js';
-import { isUUID } from 'class-validator';
 
 function getOrder(overrides: Partial<Order> = {}): Order {
   return {
