@@ -1,10 +1,11 @@
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { randomUUID } from 'crypto';
+import type { Mock } from 'vitest';
+import { Order, OrderStatus } from './domain/order.js';
 import { ORDER_REPOSITORY } from './domain/order.repository.js';
 import { OrdersService } from './orders.service.js';
-import { Mock } from 'vitest';
-import { randomUUID } from 'crypto';
-import { Order, OrderStatus } from './domain/order.js';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { isUUID } from 'class-validator';
 
 function getOrder(overrides: Partial<Order> = {}): Order {
   return {
@@ -97,7 +98,7 @@ describe('OrdersService', () => {
     expect(result.status).toBe(OrderStatus.CANCELLED);
   });
 
-  it('should return the required order if findOne is called correctly', async () => {
+  it('should return the order when findOne is called and the order belongs to the user', async () => {
     const originalOrder = getOrder({
       status: OrderStatus.PAID,
     });
@@ -109,6 +110,14 @@ describe('OrdersService', () => {
     );
 
     expect(result).toEqual(originalOrder);
+  });
+
+  it('should throw an error when findOne is called but the order is not found', async () => {
+    orders.findById.mockResolvedValue(undefined);
+
+    await expect(service.findOne(randomUUID(), randomUUID())).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('should throw an error when findOne is called but the userId does not match with the orderId', async () => {
