@@ -76,9 +76,15 @@ describe('OrdersService', () => {
     });
     orders.findById.mockResolvedValue(originalOrder);
 
-    await expect(
-      service.cancel(originalOrder.userId, originalOrder.id),
-    ).rejects.toThrow(OrderAlreadyPaidError);
+    const resultPromise = service.cancel(
+      originalOrder.userId,
+      originalOrder.id,
+    );
+
+    await expect(resultPromise).rejects.toThrow(OrderAlreadyPaidError);
+    await expect(resultPromise).rejects.toMatchObject({
+      orderId: originalOrder.id,
+    });
 
     expect(orders.save).not.toHaveBeenCalled();
   });
@@ -120,6 +126,14 @@ describe('OrdersService', () => {
     await expect(service.findOne(randomUUID(), randomUUID())).rejects.toThrow(
       OrderNotFoundError,
     );
+
+    const orderId = randomUUID();
+    const resultPromise = service.findOne(randomUUID(), orderId);
+
+    await expect(resultPromise).rejects.toThrow(OrderNotFoundError);
+    await expect(resultPromise).rejects.toMatchObject({
+      orderId: orderId,
+    });
   });
 
   it('should throw an error when findOne is called but the userId does not match with the orderId', async () => {
@@ -128,8 +142,11 @@ describe('OrdersService', () => {
     });
     orders.findById.mockResolvedValue(originalOrder);
 
-    await expect(
-      service.findOne(randomUUID(), originalOrder.id),
-    ).rejects.toThrow(OrderNotFoundError);
+    const resultPromise = service.findOne(randomUUID(), originalOrder.id);
+
+    await expect(resultPromise).rejects.toThrow(OrderNotFoundError);
+    await expect(resultPromise).rejects.toMatchObject({
+      orderId: originalOrder.id,
+    });
   });
 });

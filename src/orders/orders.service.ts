@@ -60,7 +60,7 @@ export class OrdersService {
     const orderToBeCancelled = await this.findOne(userId, orderId);
 
     if (orderToBeCancelled.status === OrderStatus.PAID) {
-      throw new OrderAlreadyPaidError(userId);
+      throw new OrderAlreadyPaidError(orderId);
     }
 
     if (orderToBeCancelled.status === OrderStatus.PENDING) {
