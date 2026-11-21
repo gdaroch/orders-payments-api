@@ -1,7 +1,10 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
 import type { Mock } from 'vitest';
+import {
+  OrderAlreadyPaidError,
+  OrderNotFoundError,
+} from './domain/order-errors.js';
 import { Order, OrderStatus } from './domain/order.js';
 import { ORDER_REPOSITORY } from './domain/order.repository.js';
 import { OrdersService } from './orders.service.js';
@@ -75,7 +78,7 @@ describe('OrdersService', () => {
 
     await expect(
       service.cancel(originalOrder.userId, originalOrder.id),
-    ).rejects.toThrow(ConflictException);
+    ).rejects.toThrow(OrderAlreadyPaidError);
 
     expect(orders.save).not.toHaveBeenCalled();
   });
@@ -115,7 +118,7 @@ describe('OrdersService', () => {
     orders.findById.mockResolvedValue(undefined);
 
     await expect(service.findOne(randomUUID(), randomUUID())).rejects.toThrow(
-      NotFoundException,
+      OrderNotFoundError,
     );
   });
 
@@ -127,6 +130,6 @@ describe('OrdersService', () => {
 
     await expect(
       service.findOne(randomUUID(), originalOrder.id),
-    ).rejects.toThrow(NotFoundException);
+    ).rejects.toThrow(OrderNotFoundError);
   });
 });
