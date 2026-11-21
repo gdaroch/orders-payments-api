@@ -123,16 +123,12 @@ describe('OrdersService', () => {
   it('should throw an error when findOne is called but the order is not found', async () => {
     orders.findById.mockResolvedValue(undefined);
 
-    await expect(service.findOne(randomUUID(), randomUUID())).rejects.toThrow(
-      OrderNotFoundError,
-    );
-
     const orderId = randomUUID();
     const resultPromise = service.findOne(randomUUID(), orderId);
 
     await expect(resultPromise).rejects.toThrow(OrderNotFoundError);
     await expect(resultPromise).rejects.toMatchObject({
-      orderId: orderId,
+      orderId,
     });
   });
 
