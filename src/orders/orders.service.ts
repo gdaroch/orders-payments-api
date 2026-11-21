@@ -1,11 +1,10 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { UUID } from 'crypto';
 import { randomUUID } from 'crypto';
+import {
+  OrderAlreadyPaidError,
+  OrderNotFoundError,
+} from './domain/order-errors.js';
 import { Order, OrderStatus } from './domain/order.js';
 import type { OrderRepository } from './domain/order.repository.js';
 import { ORDER_REPOSITORY } from './domain/order.repository.js';
@@ -45,7 +44,7 @@ export class OrdersService {
     const order = await this.orders.findById(orderId);
 
     if (!order || order.userId !== userId) {
-      throw new NotFoundException('Order not found');
+      throw new OrderNotFoundError(orderId);
     }
 
     return order;
@@ -61,9 +60,7 @@ export class OrdersService {
     const orderToBeCancelled = await this.findOne(userId, orderId);
 
     if (orderToBeCancelled.status === OrderStatus.PAID) {
-      throw new ConflictException(
-        "The order was already paid, can't be cancelled",
-      );
+      throw new OrderAlreadyPaidError(orderId);
     }
 
     if (orderToBeCancelled.status === OrderStatus.PENDING) {

@@ -1,7 +1,10 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
 import type { Mock } from 'vitest';
+import {
+  OrderAlreadyPaidError,
+  OrderNotFoundError,
+} from './domain/order-errors.js';
 import { Order, OrderStatus } from './domain/order.js';
 import { ORDER_REPOSITORY } from './domain/order.repository.js';
 import { OrdersService } from './orders.service.js';
@@ -73,9 +76,15 @@ describe('OrdersService', () => {
     });
     orders.findById.mockResolvedValue(originalOrder);
 
-    await expect(
-      service.cancel(originalOrder.userId, originalOrder.id),
-    ).rejects.toThrow(ConflictException);
+    const resultPromise = service.cancel(
+      originalOrder.userId,
+      originalOrder.id,
+    );
+
+    await expect(resultPromise).rejects.toThrow(OrderAlreadyPaidError);
+    await expect(resultPromise).rejects.toMatchObject({
+      orderId: originalOrder.id,
+    });
 
     expect(orders.save).not.toHaveBeenCalled();
   });
@@ -114,9 +123,13 @@ describe('OrdersService', () => {
   it('should throw an error when findOne is called but the order is not found', async () => {
     orders.findById.mockResolvedValue(undefined);
 
-    await expect(service.findOne(randomUUID(), randomUUID())).rejects.toThrow(
-      NotFoundException,
-    );
+    const orderId = randomUUID();
+    const resultPromise = service.findOne(randomUUID(), orderId);
+
+    await expect(resultPromise).rejects.toThrow(OrderNotFoundError);
+    await expect(resultPromise).rejects.toMatchObject({
+      orderId,
+    });
   });
 
   it('should throw an error when findOne is called but the userId does not match with the orderId', async () => {
@@ -125,8 +138,11 @@ describe('OrdersService', () => {
     });
     orders.findById.mockResolvedValue(originalOrder);
 
-    await expect(
-      service.findOne(randomUUID(), originalOrder.id),
-    ).rejects.toThrow(NotFoundException);
+    const resultPromise = service.findOne(randomUUID(), originalOrder.id);
+
+    await expect(resultPromise).rejects.toThrow(OrderNotFoundError);
+    await expect(resultPromise).rejects.toMatchObject({
+      orderId: originalOrder.id,
+    });
   });
 });
