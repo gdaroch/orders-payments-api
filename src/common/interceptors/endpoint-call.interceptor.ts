@@ -5,8 +5,8 @@ import {
   Logger,
   NestInterceptor,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { finalize, Observable } from 'rxjs';
+import type { Request, Response } from 'express';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class EndpointCallInterceptor implements NestInterceptor {
@@ -17,18 +17,15 @@ export class EndpointCallInterceptor implements NestInterceptor {
     next: CallHandler<any>,
   ): Observable<unknown> {
     const { method, path } = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
     const startTimer = Date.now();
 
-    return next.handle().pipe(
-      finalize(() => {
-        const response = context.switchToHttp().getResponse<Response>();
-
-        response.on('finish', () =>
-          this.logger.log(
-            `${method} ${path} ${response.statusCode} ${Date.now() - startTimer}ms`,
-          ),
-        );
-      }),
+    response.on('finish', () =>
+      this.logger.log(
+        `${method} ${path} ${response.statusCode} ${Date.now() - startTimer}ms`,
+      ),
     );
+
+    return next.handle();
   }
 }
