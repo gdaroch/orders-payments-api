@@ -2,7 +2,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
-import { Mock } from 'vitest';
+import type { Mock } from 'vitest';
 import { AuthService } from './auth.service.js';
 import type { User } from './domain/user.js';
 import { USER_REPOSITORY } from './domain/user.repository.js';
@@ -46,6 +46,18 @@ describe('AuthService', () => {
     expect(result).toEqual({ accessToken: expectedToken });
   });
 
+  it('should login correctly if the email contains capital letters', async () => {
+    const result = await service.signIn('User@Email.com', password);
+
+    expect(users.findByEmail).toHaveBeenCalledOnce();
+    expect(users.findByEmail).toHaveBeenCalledWith(email);
+
+    expect(jwt.signAsync).toHaveBeenCalledOnce();
+    expect(jwt.signAsync).toHaveBeenCalledWith({ sub: user.id });
+
+    expect(result).toEqual({ accessToken: expectedToken });
+  });
+
   it('should throw an error if the password is incorrect', async () => {
     const invalidPassword = 'password1234';
 
@@ -56,8 +68,9 @@ describe('AuthService', () => {
     expect(users.findByEmail).toHaveBeenCalledOnce();
     expect(users.findByEmail).toHaveBeenCalledWith(email);
 
-    expect(jwt.signAsync).not.toHaveBeenCalledOnce();
+    expect(jwt.signAsync).not.toHaveBeenCalled();
   });
+
   it('should throw an error if the email does not exist', async () => {
     users.findByEmail.mockResolvedValue(undefined);
 
@@ -68,6 +81,6 @@ describe('AuthService', () => {
     expect(users.findByEmail).toHaveBeenCalledOnce();
     expect(users.findByEmail).toHaveBeenCalledWith(email);
 
-    expect(jwt.signAsync).not.toHaveBeenCalledOnce();
+    expect(jwt.signAsync).not.toHaveBeenCalled();
   });
 });
