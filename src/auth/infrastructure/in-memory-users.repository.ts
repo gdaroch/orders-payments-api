@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UUID } from 'crypto';
 import { UserRepository } from '../domain/user.repository.js';
-import type { User } from '../domain/users.js';
+import type { User } from '../domain/user.js';
 
 const exampleUser: User = {
   id: 'f950b873-be82-4a4d-a55d-ac4ff3d16ab1' as UUID,

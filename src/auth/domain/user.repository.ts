@@ -1,4 +1,4 @@
-import { User } from './users.js';
+import type { User } from './user.js';
 
 /** Contract for loading users. */
 export interface UserRepository {

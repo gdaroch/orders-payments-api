@@ -18,7 +18,7 @@ export class AuthService {
    * @throws UnauthorizedException if the email is unknown or the password doesn't match.
    */
   async signIn(email: string, password: string) {
-    const user = await this.users.findByEmail(email);
+    const user = await this.users.findByEmail(email.toLowerCase());
 
     if (!user || user.password !== password) {
       throw new UnauthorizedException('Invalid credentials');
